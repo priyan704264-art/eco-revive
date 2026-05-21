@@ -1,0 +1,7 @@
+fastapi==0.136.1
+uvicorn==0.47.0
+ultralytics==8.3.161
+pillow==11.2.1
+razorpay==2.0.1
+python-dotenv==1.2.2
+python-multipart==0.0.29
