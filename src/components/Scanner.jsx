@@ -101,7 +101,7 @@ export default function Scanner({ onComponentsSaved }) {
       predictions = await runYOLODetection(file);
       setYoloPredictions(predictions);
     } catch (err) {
-      setError(`❌ YOLO model unreachable: ${err.message}\n\nMake sure your Railway backend is running at:\n${BACKEND_URL}`);
+      setError(`Detection service is currently unavailable. Please try again in a moment.\n\nIf the issue persists, contact support.`);
       setStage("error");
       return;
     }
@@ -128,7 +128,7 @@ export default function Scanner({ onComponentsSaved }) {
       setComponents(withBoxes);
       setStage("done");
     } catch (err) {
-      setError(`❌ Groq enrichment failed: ${err.message}`);
+      setError(`Analysis failed. Please try again with a clearer image.`);
       setStage("error");
     }
   };
@@ -182,27 +182,27 @@ export default function Scanner({ onComponentsSaved }) {
       <header className="w-full max-w-[1400px] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
-            <Target className="text-[#0F9D8A]" /> AI Vision Scanner
+            <Target className="text-[#0F9D8A]" /> AI Component Scanner
             <span className="text-[#0F9D8A] animate-pulse text-sm ml-1">● Live</span>
           </h1>
           <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">
-            YOLO Detection → Groq Enrichment Pipeline
+            Powered by ReCupare AI — Instant Component Detection
           </p>
         </div>
         <div className="flex gap-2">
           <div className="bg-white border border-slate-100 rounded-xl px-3 py-2 flex flex-col items-end shadow-sm">
-            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Model</span>
+            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Detection</span>
             <span className="text-xs font-black text-[#0F9D8A] flex items-center gap-1">
-              <Wifi size={11} /> best.pt
+              <Wifi size={11} /> Active
             </span>
           </div>
           <div className="bg-white border border-slate-100 rounded-xl px-3 py-2 flex flex-col items-end shadow-sm">
-            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Enrichment</span>
-            <span className="text-xs font-black text-violet-500">Groq LLM</span>
+            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Analysis</span>
+            <span className="text-xs font-black text-violet-500">AI Ready</span>
           </div>
           {yoloPredictions.length > 0 && (
             <div className="bg-white border border-slate-100 rounded-xl px-3 py-2 flex flex-col items-end shadow-sm">
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Detections</span>
+              <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Found</span>
               <span className="text-xs font-black text-slate-800">{yoloPredictions.length}</span>
             </div>
           )}
@@ -275,20 +275,20 @@ export default function Scanner({ onComponentsSaved }) {
                   </div>
                   <div className="text-center">
                     <p className="font-black text-slate-800 text-sm uppercase tracking-widest">
-                      {stage === "yolo" ? "Running YOLO Detection..." : "Groq Enriching Data..."}
+                      {stage === "yolo" ? "Scanning Components..." : "Analyzing Results..."}
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      {stage === "yolo" ? `Sending to ${BACKEND_URL}/detect` : "Calling Groq LLM for component details"}
+                      {stage === "yolo" ? "Detecting components in your image" : "Generating detailed component data"}
                     </p>
                   </div>
                   {/* Pipeline progress */}
                   <div className="flex items-center gap-2 text-xs font-bold">
                     <span className={`px-3 py-1 rounded-full border ${stage === "yolo" ? "bg-[#0F9D8A] text-white border-[#0F9D8A]" : "bg-emerald-50 text-emerald-600 border-emerald-200"}`}>
-                      {stage === "yolo" ? "⟳ YOLO" : "✓ YOLO"}
+                      {stage === "yolo" ? "⟳ Detecting" : "✓ Detected"}
                     </span>
                     <span className="text-slate-300">→</span>
                     <span className={`px-3 py-1 rounded-full border ${stage === "groq" ? "bg-violet-500 text-white border-violet-500" : "bg-slate-100 text-slate-400 border-slate-200"}`}>
-                      {stage === "groq" ? "⟳ Groq" : "Groq"}
+                      {stage === "groq" ? "⟳ Analyzing" : "Analyze"}
                     </span>
                   </div>
                 </div>
@@ -340,13 +340,9 @@ export default function Scanner({ onComponentsSaved }) {
                     </h3>
                     <span className="text-xl font-black text-[#0F9D8A]">₹{totalValue}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                    <span className="text-emerald-500">✓ YOLO</span>
-                    <span>→</span>
-                    <span className="text-violet-500">✓ Groq</span>
-                    <span>→</span>
-                    <span className="text-slate-500">{yoloPredictions.length} raw detections</span>
-                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Tap <span className="font-bold text-[#0F9D8A]">Guide</span> on any component for safe extraction steps
+                  </p>
                 </div>
 
                 {/* Per-component cards */}
