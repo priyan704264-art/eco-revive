@@ -55,8 +55,17 @@ export default function ProfilePage() {
         }
       } catch (err) {
         const msg = err.message || JSON.stringify(err);
-        setDbError(msg.includes("schema cache") || msg.includes("relation") || msg.includes("PGRST205")
-          ? "schema_cache" : msg);
+        // Silently ignore schema/table-not-found errors — just show empty state
+        const isSchemaError = msg.includes("schema cache") || msg.includes("relation") || 
+                              msg.includes("PGRST205") || msg.includes("does not exist");
+        if (!isSchemaError) {
+          setDbError(msg);
+        }
+        // Set empty defaults so the page still renders
+        setComponents([]);
+        setListings([]);
+        setPurchases([]);
+        setImpact({ total_components: 0, total_co2_saved_kg: 0, total_earned_inr: 0, waste_diverted_kg: 0 });
       }
       setLoading(false);
     }
@@ -84,22 +93,17 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6 bg-[#fafdfb] min-h-screen">
 
-      {/* DB error banner */}
-      {dbError === "schema_cache" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-3">
-          <ShieldAlert className="text-amber-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <h4 className="text-amber-700 font-bold text-sm">Database Tables Not Initialized</h4>
-            <p className="text-amber-600 text-xs mt-1">
-              Run <code className="bg-amber-100 px-1 rounded">supabase_schema.sql</code> in your Supabase SQL editor.
-            </p>
-          </div>
+      {/* DB error banner — only show unexpected errors, not schema warnings */}
+      {dbError && dbError !== "schema_cache" && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex gap-3">
+          <ShieldAlert className="text-rose-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+          <p className="text-rose-600 text-xs font-medium">{dbError}</p>
         </div>
       )}
 
       {/* ── Profile card ── */}
       <div className="bg-white border border-[#e2ece6] rounded-3xl p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div className="flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-6">
           <div className="relative flex-shrink-0">
             <img
               src={user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || user.email || "user")}`}
@@ -131,7 +135,7 @@ export default function ProfilePage() {
 
           <button
             onClick={handleLogout}
-            className="flex-shrink-0 px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500 text-rose-500 text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 group"
+            className="w-full md:w-auto flex-shrink-0 px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500 text-rose-500 text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 group"
           >
             <LogOut size={14} className="group-hover:rotate-12 transition-transform" />Logout
           </button>
@@ -145,7 +149,7 @@ export default function ProfilePage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-bold tracking-wide transition-all border-b-2 -mb-px whitespace-nowrap
+              className={`flex items-center gap-1.5 px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold tracking-wide transition-all border-b-2 -mb-px whitespace-nowrap
                 ${activeTab === tab.id
                   ? "border-[#0F9D8A] text-[#0F9D8A] bg-[#0F9D8A]/5"
                   : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}
@@ -207,7 +211,7 @@ export default function ProfilePage() {
                     <div className={`w-10 h-10 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center mb-3`}>
                       {stat.icon}
                     </div>
-                    <p className="text-2xl font-black text-slate-800">{stat.value}<span className="text-base text-slate-400 ml-1">{stat.unit}</span></p>
+                    <p className="text-xl sm:text-2xl font-black text-slate-800">{stat.value}<span className="text-sm sm:text-base text-slate-400 ml-1">{stat.unit}</span></p>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{stat.label}</p>
                   </div>
                 ))}

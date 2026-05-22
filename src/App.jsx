@@ -8,6 +8,7 @@ import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DisassemblyPage from "./pages/DisassemblyPage";
+import AdminPage from "./pages/AdminPage";
 
 function AppContent() {
   return (
@@ -24,12 +25,13 @@ function AppContent() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route path="/disassembly" element={<DisassemblyPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       
       <footer className="py-6 text-center border-t border-[#e2ece6] text-[10px] text-slate-400 uppercase tracking-widest bg-white mt-auto">
-        © {new Date().getFullYear()} EcoParts. Recycle. Reuse. Rebuild. Wiping Heavy Metals Out of Earth.
+        © {new Date().getFullYear()} ReCupare. Recycle. Reuse. Rebuild. Wiping Heavy Metals Out of Earth.
       </footer>
     </div>
   );

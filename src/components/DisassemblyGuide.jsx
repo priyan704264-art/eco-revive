@@ -1,51 +1,56 @@
-import { useState } from "react";
-import { AlertTriangle, Wrench, ShieldAlert, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, PlayCircle, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertTriangle, Wrench, ShieldAlert, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, PlayCircle, X, Loader2 } from "lucide-react";
+import { generateGuide } from "../lib/groq";
+
+// Step image pool for visual variety
+const STEP_IMAGES = [
+  "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&w=800&q=80",
+];
 
 export default function DisassemblyGuide({ componentName, deviceType, onClose }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [guideData, setGuideData] = useState(null);
+  const [loadingGuide, setLoadingGuide] = useState(true);
+  const [guideError, setGuideError] = useState(null);
 
-  // Mocked guide data
-  const steps = [
-    {
-      title: "Preparation & Safety",
-      titleHi: "तैयारी और सुरक्षा",
-      desc: "Before starting, ensure the device is completely powered off and unplugged. Ground yourself using an anti-static wrist strap to prevent ESD damage.",
-      descHi: "शुरू करने से पहले, सुनिश्चित करें कि डिवाइस पूरी तरह से बंद और अनप्लग है।",
-      warning: "Always wear safety goggles. Batteries can explode if punctured.",
-      tools: ["Anti-static strap", "Safety goggles", "Rubber mat"],
-      image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Remove Outer Casing",
-      titleHi: "बाहरी केसिंग निकालें",
-      desc: "Locate the screws on the back panel. Carefully unscrew them using a Phillips #1 screwdriver. Keep screws organized on a magnetic mat.",
-      descHi: "बैक पैनल पर स्क्रू ढूंढें और उन्हें सावधानी से खोलें।",
-      warning: null,
-      tools: ["Phillips #1 Screwdriver", "Magnetic Mat"],
-      image: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: `Locate ${componentName}`,
-      titleHi: `${componentName} का पता लगाएँ`,
-      desc: `Identify the ${componentName} on the main logic board. It is typically held down by retaining clips or a specialized bracket.`,
-      descHi: `मदरबोर्ड पर ${componentName} को पहचानें।`,
-      warning: "Do not touch the gold contact pins directly.",
-      tools: ["Spudger", "Tweezers"],
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Disconnect & Extract",
-      titleHi: "डिस्कनेक्ट करें और निकालें",
-      desc: `Gently push the retaining clips outward to release the ${componentName}. Pull it out at a 30-degree angle. Place it inside an anti-static bag immediately.`,
-      descHi: `क्लिप्स को बाहर की ओर धकेलें और ${componentName} को धीरे से बाहर निकालें।`,
-      warning: "Applying too much force can snap the logic board.",
-      tools: ["Anti-static bag"],
-      image: "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=800&q=80"
-    }
-  ];
+  useEffect(() => {
+    setCurrentStep(0);
+    setLoadingGuide(true);
+    setGuideError(null);
+    setGuideData(null);
 
-  const step = steps[currentStep];
-  const progress = ((currentStep + 1) / steps.length) * 100;
+    generateGuide(deviceType, componentName)
+      .then((result) => {
+        if (result.success && result.guide) {
+          setGuideData(result.guide);
+        } else {
+          setGuideError("Could not load guide. Please try again.");
+        }
+      })
+      .catch(() => setGuideError("Failed to generate guide."))
+      .finally(() => setLoadingGuide(false));
+  }, [componentName, deviceType]);
+
+  // Map guide steps to the internal format expected by the UI
+  const steps = guideData
+    ? guideData.steps.map((s, i) => ({
+        title: s.title,
+        titleHi: s.hindi_instruction ? s.hindi_instruction.split(".")[0] : s.title,
+        desc: s.instruction,
+        descHi: s.hindi_instruction || "",
+        warning: s.safety_flag ? s.safety_note : null,
+        tools: i === 0 ? (guideData.tools_needed || []) : [],
+        tip: s.tip || null,
+        image: STEP_IMAGES[i % STEP_IMAGES.length],
+      }))
+    : [];
+
+  const step = steps[currentStep] || {};
+  const progress = steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
 
   return (
     <div className="bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-full max-h-[90vh] text-slate-800 font-sans border border-slate-100 relative">
@@ -57,6 +62,27 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
         </button>
       )}
 
+      {/* Loading overlay */}
+      {loadingGuide && (
+        <div className="absolute inset-0 z-40 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-3xl">
+          <Loader2 className="w-10 h-10 text-[#0F9D8A] animate-spin" />
+          <p className="text-sm font-bold text-slate-600">Generating AI guide for <span className="text-[#0F9D8A]">{componentName}</span>…</p>
+        </div>
+      )}
+
+      {/* Error overlay */}
+      {guideError && !loadingGuide && (
+        <div className="absolute inset-0 z-40 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-3xl p-8 text-center">
+          <AlertTriangle className="w-10 h-10 text-orange-400" />
+          <p className="text-sm font-bold text-slate-600">{guideError}</p>
+          {onClose && (
+            <button onClick={onClose} className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition">
+              Close
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Left Area: Media & Visuals */}
       <div className="w-full md:w-1/2 bg-slate-900 relative flex flex-col justify-between">
         
@@ -65,7 +91,7 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
           <span className="text-xs font-bold uppercase tracking-widest">Live Interactive Guide</span>
         </div>
 
-        <div className="relative flex-1 h-[300px] md:h-auto overflow-hidden">
+        <div className="relative h-[200px] sm:h-[260px] md:h-auto overflow-hidden">
            <img 
              src={step.image} 
              alt={step.title} 
@@ -80,7 +106,7 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
 
         <div className="p-6 md:p-8 relative z-10">
            <h4 className="text-[#0F9D8A] text-[10px] font-bold uppercase tracking-widest mb-2">Extraction Target</h4>
-           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
+           <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-tight">
              {deviceType} • {componentName}
            </h2>
         </div>
@@ -90,7 +116,7 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
       <div className="w-full md:w-1/2 flex flex-col bg-white">
         
         {/* Progress Header */}
-        <div className="px-8 pt-8 pb-4 border-b border-slate-100">
+        <div className="px-4 sm:px-8 pt-5 sm:pt-8 pb-4 border-b border-slate-100">
           <div className="flex justify-between items-end mb-3">
              <span className="text-sm font-bold text-slate-400 uppercase tracking-wide">
                Step {currentStep + 1} of {steps.length}
@@ -106,7 +132,7 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
         </div>
 
         {/* Step Content */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-5 sm:space-y-6 custom-scrollbar">
           
           <div>
             <h1 className="text-2xl font-black text-slate-900 leading-tight">
@@ -155,21 +181,23 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
           )}
 
           {/* Safety Tip Card */}
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3">
-            <Lightbulb className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
-            <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pro Tip</h4>
-              <p className="text-slate-700 text-sm font-medium leading-relaxed">Take photos of the board before removing cables so you remember where they go during reassembly.</p>
+          {step.tip && (
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3">
+              <Lightbulb className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pro Tip</h4>
+                <p className="text-slate-700 text-sm font-medium leading-relaxed">{step.tip}</p>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
 
         {/* Footer Navigation Controls */}
-        <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-between items-center">
+        <div className="px-4 sm:px-8 py-4 sm:py-5 border-t border-slate-100 bg-white flex justify-between items-center">
           <button
             onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || steps.length === 0}
             className="px-5 py-2.5 rounded-xl text-slate-500 font-bold text-sm flex items-center gap-2 hover:bg-slate-100 transition disabled:opacity-30 disabled:pointer-events-none"
           >
             <ArrowLeft size={16} /> Previous
@@ -185,7 +213,8 @@ export default function DisassemblyGuide({ componentName, deviceType, onClose })
           ) : (
             <button
                onClick={() => setCurrentStep(prev => Math.min(steps.length - 1, prev + 1))}
-               className="px-6 py-2.5 rounded-xl bg-[#0F9D8A] hover:bg-[#0c7c6c] text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-[#0F9D8A]/20 transition transform hover:-translate-y-0.5 active:scale-95"
+               disabled={steps.length === 0}
+               className="px-6 py-2.5 rounded-xl bg-[#0F9D8A] hover:bg-[#0c7c6c] text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-[#0F9D8A]/20 transition transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             >
               Next Step <ArrowRight size={16} />
             </button>

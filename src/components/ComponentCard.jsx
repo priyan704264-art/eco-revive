@@ -1,16 +1,22 @@
 import { Wrench, Tag, ShieldCheck, Cpu, Database } from "lucide-react";
 
 const GRADE_PILLS = {
-  A: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  B: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  C: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  A: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  B: "bg-amber-50 text-amber-700 border-amber-200",
+  C: "bg-rose-50 text-rose-700 border-rose-200",
+};
+
+const REUSE_COLORS = {
+  High:   "text-emerald-600",
+  Medium: "text-amber-600",
+  Low:    "text-rose-500",
 };
 
 export default function ComponentCard({ component, onDisassemble, onList }) {
   return (
-    <div className="glass-panel border border-slate-700/40 hover:border-blue-500/30 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col h-full group">
+    <div className="bg-white border border-[#e2ece6] hover:border-[#0F9D8A]/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:shadow-[#0F9D8A]/10 transition-all duration-300 flex flex-col h-full group">
       {/* Component image header */}
-      <div className="relative h-40 bg-slate-950 flex items-center justify-center overflow-hidden">
+      <div className="relative h-40 bg-slate-50 flex items-center justify-center overflow-hidden border-b border-[#e2ece6]">
         {component.image_url ? (
           <img
             src={component.image_url}
@@ -18,14 +24,14 @@ export default function ComponentCard({ component, onDisassemble, onList }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-slate-600">
-            <Cpu size={40} className="stroke-[1.5] mb-2 text-slate-500 animate-pulse-subtle" />
-            <span className="text-xs uppercase tracking-widest text-slate-500 font-bold">Hardware</span>
+          <div className="flex flex-col items-center justify-center text-slate-400">
+            <Cpu size={40} className="stroke-[1.5] mb-2" />
+            <span className="text-xs uppercase tracking-widest font-bold">Hardware</span>
           </div>
         )}
         {/* Quality grade floating pill */}
         <span className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-sm
-          ${GRADE_PILLS[component.grade] || "bg-slate-800 text-slate-400 border-slate-700"}`}>
+          ${GRADE_PILLS[component.grade] || "bg-slate-100 text-slate-500 border-slate-200"}`}>
           Grade {component.grade}
         </span>
       </div>
@@ -34,51 +40,55 @@ export default function ComponentCard({ component, onDisassemble, onList }) {
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">
-            <Database size={12} className="text-blue-500" />
+            <Database size={12} className="text-[#0F9D8A]" />
             <span>Inventory Item</span>
           </div>
 
-          <h3 className="font-bold text-white text-base leading-snug group-hover:text-blue-400 transition-colors">
+          <h3 className="font-bold text-slate-800 text-base leading-snug group-hover:text-[#0F9D8A] transition-colors">
             {component.name}
           </h3>
-          <p className="text-xs text-slate-400 mt-1 font-medium italic">
-            {component.hindi_name}
-          </p>
+          {component.hindi_name && (
+            <p className="text-xs text-slate-400 mt-1 font-medium italic">
+              {component.hindi_name}
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-2 mt-4">
-            <div className="bg-slate-900/60 rounded-xl p-2.5 border border-slate-850">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Est. Market Value</span>
-              <span className="text-sm font-black text-emerald-400">₹{component.estimated_value_inr}</span>
+            <div className="bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Est. Value</span>
+              <span className="text-sm font-black text-[#0F9D8A]">₹{component.estimated_value_inr}</span>
             </div>
-            <div className="bg-slate-900/60 rounded-xl p-2.5 border border-slate-850">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Reuse Rate</span>
-              <span className="text-sm font-black text-slate-200">{component.reuse_potential}</span>
+            <div className="bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Reuse Rate</span>
+              <span className={`text-sm font-black ${REUSE_COLORS[component.reuse_potential] || "text-slate-600"}`}>
+                {component.reuse_potential}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Action button drawers */}
-        <div className="mt-5 space-y-2 pt-2 border-t border-slate-850">
+        {/* Action buttons */}
+        <div className="mt-5 space-y-2 pt-2 border-t border-[#e2ece6]">
           <button
             onClick={() => onDisassemble(component)}
-            className="w-full py-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 text-slate-100 font-bold text-xs tracking-wider uppercase transition flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 rounded-xl border border-[#e2ece6] bg-white hover:bg-[#f6faf8] hover:border-[#0F9D8A]/30 text-slate-700 font-bold text-xs tracking-wider uppercase transition flex items-center justify-center gap-1.5"
           >
-            <Wrench size={13} className="text-blue-400" />
+            <Wrench size={13} className="text-[#0F9D8A]" />
             <span>Disassembly Guide</span>
           </button>
           
           {component.status === "in_inventory" && (
             <button
               onClick={() => onList(component)}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-slate-100 font-bold text-xs tracking-wider uppercase transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/10 active:scale-[0.98]"
+              className="w-full py-2.5 rounded-xl bg-[#0F9D8A] hover:bg-[#0c7c6c] text-white font-bold text-xs tracking-wider uppercase transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F9D8A]/20 active:scale-[0.98]"
             >
-              <Tag size={13} className="text-white" />
+              <Tag size={13} />
               <span>List on Marketplace</span>
             </button>
           )}
 
           {component.status === "listed" && (
-            <div className="w-full py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs tracking-wider uppercase rounded-xl flex items-center justify-center gap-1.5">
+            <div className="w-full py-2 bg-[#0F9D8A]/10 border border-[#0F9D8A]/20 text-[#0F9D8A] font-bold text-xs tracking-wider uppercase rounded-xl flex items-center justify-center gap-1.5">
               <ShieldCheck size={14} />
               <span>Listed on Marketplace</span>
             </div>

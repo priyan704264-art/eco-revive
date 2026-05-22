@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getAllListings, getUser, recordPurchase } from "../lib/supabase";
 import MarketplaceCard from "../components/MarketplaceCard";
 import ChatBox from "../components/ChatBox";
@@ -16,9 +16,17 @@ export default function MarketplacePage() {
     category: "", grade: "", minPrice: "", maxPrice: "", city: "", condition: "", verifiedOnly: false
   });
   const [sortBy, setSortBy] = useState("Newest");
+  const [searchParams] = useSearchParams();
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Hyderabad", "Pune", "Kolkata", "Jaipur"];
   const categories = ["IC Chips", "Capacitors", "Resistors", "Motors", "Sensors", "Connectors", "Motherboards", "RAM", "Other"];
+
+  useEffect(() => {
+    // Pre-fill search from URL query param (e.g. from navbar search)
+    const urlSearch = searchParams.get("search");
+    if (urlSearch) setSearch(urlSearch);
+  }, [searchParams]);
 
   useEffect(() => {
     loadListings();
@@ -66,9 +74,9 @@ export default function MarketplacePage() {
 
       if (window.Razorpay) {
         const options = {
-          key: razorpayKeyId, amount: amount, currency: currency, name: "EcoParts Marketplace",
+          key: razorpayKeyId, amount: amount, currency: currency, name: "ReCupare Marketplace",
           description: `Purchase ${listing.components?.name || "Hardware Component"}`,
-          image: "https://api.dicebear.com/7.x/bottts/svg?seed=ecorevive", order_id: order_id,
+          image: "https://api.dicebear.com/7.x/bottts/svg?seed=recupare", order_id: order_id,
           handler: async function (response) {
             try {
               const verifyResponse = await fetch(`${BACKEND_URL}/api/verify-payment`, {
@@ -95,7 +103,7 @@ export default function MarketplacePage() {
               alert(`❌ Verification Request Failed: ${verifyErr.message}`);
             }
           },
-          prefill: { name: "Eco Buyer", email: "buyer@ecorevive.com", contact: "9999999999" },
+          prefill: { name: "ReCupare Buyer", email: "buyer@recupare.com", contact: "9999999999" },
           theme: { color: "#0F9D8A" },
           modal: { ondismiss: function () { console.log("Razorpay checkout modal dismissed by user."); } }
         };
@@ -124,9 +132,23 @@ export default function MarketplacePage() {
       <div className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-8 items-start relative z-10">
         
         {/* Left Sidebar Filters */}
-        <aside className="w-full lg:w-72 flex-shrink-0 space-y-6 sticky top-[90px]">
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+        <aside className="w-full lg:w-72 flex-shrink-0 space-y-3 lg:space-y-6 lg:sticky lg:top-[90px]">
+          {/* Mobile filter toggle */}
+          <button
+            onClick={() => setFiltersOpen(prev => !prev)}
+            className="lg:hidden w-full flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm"
+          >
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+              <Filter size={16} className="text-[#0F9D8A]" />
+              Filters & Categories
+              {(filters.category || filters.grade || filters.city || filters.minPrice || filters.maxPrice || filters.verifiedOnly) && (
+                <span className="bg-[#0F9D8A] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">Active</span>
+              )}
+            </div>
+            <SlidersHorizontal size={16} className={`text-slate-400 transition-transform duration-200 ${filtersOpen ? 'rotate-90' : ''}`} />
+          </button>
+          <div className={`bg-white rounded-3xl border border-slate-100 p-6 shadow-sm ${filtersOpen ? 'block' : 'hidden lg:block'}`}>
+            <div className="hidden lg:flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
               <Filter size={18} className="text-[#0F9D8A]" />
               <h2 className="text-base font-black text-slate-800 tracking-tight">Filters</h2>
             </div>

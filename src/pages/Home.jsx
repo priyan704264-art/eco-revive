@@ -306,13 +306,13 @@ export default function Home() {
       </svg>
 
       {/* Main Workspace Wrapper */}
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
 
         {/* 1. HERO SECTION */}
-        <section className="pt-16 pb-16 lg:pt-24 lg:pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section className="pt-8 pb-6 lg:pt-24 lg:pb-24 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center overflow-hidden">
           
           {/* Left: Text & CTAs */}
-          <div className="lg:col-span-5 space-y-7 animate-fadeIn">
+          <div className="lg:col-span-5 space-y-7 opacity-0 animate-fade-in-left" style={{animationFillMode:'forwards'}}>
             {/* Green sustainable pill badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F9D8A]/10 border border-[#0F9D8A]/20 text-xs font-bold text-[#0F9D8A] w-fit shadow-sm">
               <Leaf size={14} className="fill-[#0F9D8A]/20" />
@@ -372,20 +372,120 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: Composite Graphics (Phone Mockup + Ewaste Bin + Floating Card) */}
-          <div className="lg:col-span-7 relative flex justify-center items-center h-[520px] w-full mt-10 lg:mt-0">
+          {/* Mobile hero visual — fully stacked, no absolute positioning */}
+          <div className="lg:hidden w-full space-y-3 animate-fade-in-up delay-300" style={{animationFillMode:'forwards'}}>
+
+            {/* Phone mockup — full width, no overflow */}
+            <div className="w-full rounded-2xl bg-slate-900 overflow-hidden shadow-xl border border-slate-800">
+              {/* Status bar */}
+              <div className="px-4 py-2.5 flex items-center justify-between text-[10px] text-slate-400 font-bold bg-slate-900 border-b border-white/5">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span>Scan Result</span>
+                </div>
+                <span className="text-emerald-400 font-bold">Analysis Complete</span>
+              </div>
+              {/* Scan area */}
+              <div className="bg-slate-950 relative flex items-center justify-center overflow-hidden" style={{height: '160px'}}>
+                <svg className="w-full h-full opacity-30" viewBox="0 0 320 160" fill="none">
+                  <rect x="10" y="10" width="300" height="140" rx="4" stroke="#1e293b" strokeWidth="2" />
+                  <rect x="120" y="50" width="80" height="60" rx="3" fill="#1e293b" stroke="#334155" />
+                  <circle cx="160" cy="80" r="18" fill="#334155" />
+                  <line x1="10" y1="80" x2="310" y2="80" stroke="#1e293b" strokeWidth="1" />
+                </svg>
+                <div className="absolute left-0 right-0 h-[2px] bg-emerald-500/60 shadow-lg shadow-emerald-500/40 animate-bounce" style={{top: '40%'}}></div>
+                <div className="absolute top-3 left-4 border border-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400">Capacitor • 98%</div>
+                <div className="absolute top-3 right-4 border border-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400">IC Chip • 95%</div>
+                <div className="absolute bottom-3 left-4 border border-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400">Resistor • 99%</div>
+                <div className="absolute bottom-3 right-4 border border-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400">RAM • 91%</div>
+              </div>
+              {/* Results row */}
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between gap-3">
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Found</div>
+                  <div className="text-sm font-black text-white">47</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Est. Value</div>
+                  <div className="text-sm font-black text-emerald-400">₹840</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">CO₂ Saved</div>
+                  <div className="text-sm font-black text-[#0F9D8A]">12.3 kg</div>
+                </div>
+                <Link to="/scan" className="px-3 py-2 bg-[#0F9D8A] text-white font-bold rounded-xl text-[10px] uppercase tracking-wider whitespace-nowrap">
+                  Try Now
+                </Link>
+              </div>
+            </div>
+
+            {/* Impact stats row — horizontal, no overlap */}
+            <div className="w-full bg-white border border-[#e2ece6] rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-3">Your Impact This Month</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2.5 bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                    <Leaf size={13} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-slate-800 leading-none">12.3 kg</div>
+                    <div className="text-[9px] text-slate-400 font-medium mt-0.5">CO₂ Saved</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-500 flex-shrink-0">
+                    <Cpu size={13} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-slate-800 leading-none">47</div>
+                    <div className="text-[9px] text-slate-400 font-medium mt-0.5">Components</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+                  <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
+                    <span className="font-extrabold text-[11px]">₹</span>
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-slate-800 leading-none">₹840</div>
+                    <div className="text-[9px] text-slate-400 font-medium mt-0.5">Earned</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 bg-[#f6faf8] rounded-xl p-2.5 border border-[#e2ece6]">
+                  <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center text-orange-500 flex-shrink-0">
+                    <ShoppingBag size={13} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-slate-800 leading-none">8.5 kg</div>
+                    <div className="text-[9px] text-slate-400 font-medium mt-0.5">E-Waste Diverted</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right: Composite Graphics - hidden on mobile, shown on lg+ */}
+          <div className="hidden lg:flex lg:col-span-7 relative justify-center items-center h-[520px] w-full mt-10 lg:mt-0 opacity-0 animate-fade-in-right" style={{animationDelay:'0.3s', animationFillMode:'forwards'}}>
             
             {/* 1. Plant sprouting background behind the cards */}
             <div className="absolute right-[8%] bottom-[5%] w-[160px] h-[220px] pointer-events-none z-0">
-              <svg className="w-full h-full text-emerald-700/80 animate-pulse-subtle" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Sprout Stem */}
-                <path d="M50 120 C50 90, 52 50, 65 25" stroke="#047857" strokeWidth="3" strokeLinecap="round" />
-                <path d="M50 120 C50 100, 40 70, 32 45" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
-                {/* Sprout Leaves */}
-                <path d="M65 25 C62 10, 80 5, 82 25 C82 35, 70 35, 65 25Z" fill="#34D399" />
-                <path d="M32 45 C35 30, 15 28, 20 48 C20 58, 28 55, 32 45Z" fill="#059669" />
-                <path d="M56 70 C62 55, 80 62, 72 75 C68 80, 60 76, 56 70Z" fill="#10B981" />
-                {/* Little soil mound */}
+              <svg className="w-full h-full" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Sprout Stem left */}
+                <path d="M50 120 C50 100, 40 70, 32 45" stroke="#059669" strokeWidth="2.5" strokeLinecap="round"
+                  style={{strokeDasharray: '100', strokeDashoffset: '100', animation: 'growStem 2.3s ease forwards 0.2s'}} />
+                {/* Sprout Stem main */}
+                <path d="M50 120 C50 90, 52 50, 65 25" stroke="#047857" strokeWidth="3" strokeLinecap="round"
+                  style={{strokeDasharray: '120', strokeDashoffset: '120', animation: 'growStem 2s ease forwards'}} />
+                {/* Leaf bottom */}
+                <path d="M56 70 C62 55, 80 62, 72 75 C68 80, 60 76, 56 70Z" fill="#10B981"
+                  style={{opacity: '0', transformOrigin: '64px 67px', animation: 'leafPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards 1.4s'}} />
+                {/* Leaf left */}
+                <path d="M32 45 C35 30, 15 28, 20 48 C20 58, 28 55, 32 45Z" fill="#059669"
+                  style={{opacity: '0', transformOrigin: '24px 43px', animation: 'leafPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards 1.9s'}} />
+                {/* Leaf top */}
+                <path d="M65 25 C62 10, 80 5, 82 25 C82 35, 70 35, 65 25Z" fill="#34D399"
+                  style={{opacity: '0', transformOrigin: '73px 20px', animation: 'leafPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards 2.3s'}} />
+                {/* Soil mound */}
                 <path d="M30 115 C45 110, 55 110, 70 115" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
               </svg>
             </div>
@@ -400,7 +500,8 @@ export default function Home() {
             </div>
 
             {/* 3. Smartphone Mockup with AI Scanner */}
-            <div className="absolute left-[33%] top-[4%] w-[235px] h-[480px] rounded-[36px] bg-slate-900 p-2.5 shadow-2xl border-4 border-slate-950 z-10 transform translate-x-2">
+            <div className="absolute left-[33%] top-[4%] w-[235px] h-[480px] rounded-[36px] bg-slate-900 p-2.5 shadow-2xl border-4 border-slate-950 z-10 transform translate-x-2"
+              style={{animation: 'floatUpDown 4s ease-in-out infinite 0.5s'}}>
               {/* Internal Screen Area */}
               <div className="w-full h-full rounded-[28px] bg-slate-950 overflow-hidden flex flex-col justify-between text-white font-sans text-xs relative select-none">
                 
@@ -487,15 +588,16 @@ export default function Home() {
             </div>
 
             {/* 4. Floating Analytics Impact Card */}
-            <div className="absolute right-[5%] top-[15%] w-[215px] bg-white/95 border border-[#e2ece6] rounded-3xl p-5 shadow-2xl backdrop-blur-md z-20 space-y-4 hover:translate-y-[-4px] transition-transform duration-300 select-none">
+            <div className="absolute right-[5%] top-[15%] w-[215px] bg-white/95 border border-[#e2ece6] rounded-3xl p-5 shadow-2xl backdrop-blur-md z-20 space-y-4 select-none"
+              style={{animation: 'floatUpDown 3s ease-in-out infinite'}}>
               <h3 className="font-extrabold text-slate-900 text-xs tracking-tight border-b border-slate-100 pb-2">
                 Your Impact This Month
               </h3>
 
               <div className="space-y-3 text-[11px] font-bold text-slate-600">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-[#0F9D8A]/10 border border-[#0F9D8A]/20 flex items-center justify-center text-[#0F9D8A]">
-                    <Cpu size={12} />
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-500">
+                    <Cpu size={13} />
                   </div>
                   <div>
                     <div className="text-slate-900 font-black leading-none">47</div>
@@ -504,8 +606,8 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
-                    <Leaf size={12} />
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <Leaf size={13} />
                   </div>
                   <div>
                     <div className="text-slate-900 font-black leading-none">12.3 kg</div>
@@ -514,8 +616,8 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <div className="w-7 h-7 rounded-lg bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-500">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
                   </div>
@@ -526,8 +628,8 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-[#0f9d8a]/15 border border-[#0f9d8a]/20 flex items-center justify-center text-[#0F9D8A]">
-                    <span className="font-extrabold text-[10px]">₹</span>
+                  <div className="w-7 h-7 rounded-lg bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-600">
+                    <span className="font-extrabold text-[11px]">₹</span>
                   </div>
                   <div>
                     <div className="text-slate-900 font-black leading-none">₹840</div>
@@ -555,7 +657,8 @@ export default function Home() {
             {stats.map((stat, idx) => (
               <div 
                 key={idx}
-                className="bg-white/60 border border-[#e2ece6] rounded-3xl p-5 text-center flex flex-col items-center justify-center space-y-2.5 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
+                className="bg-white/60 border border-[#e2ece6] rounded-3xl p-5 text-center flex flex-col items-center justify-center space-y-2.5 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 opacity-0 animate-fade-in-up"
+                style={{animationDelay: `${idx * 0.15}s`, animationFillMode: 'forwards'}}
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#0F9D8A]/5 border border-[#0F9D8A]/10 flex items-center justify-center shadow-inner">
                   {stat.icon}
@@ -598,7 +701,8 @@ export default function Home() {
               <Link
                 key={idx}
                 to="/marketplace"
-                className="bg-white border border-[#e2ece6] hover:border-[#0F9D8A]/30 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-2xl hover:shadow-[#0F9D8A]/10 transition-all duration-300 transform hover:-translate-y-1 h-[175px] group"
+                className="bg-white border border-[#e2ece6] hover:border-[#0F9D8A]/30 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-2xl hover:shadow-[#0F9D8A]/10 transition-all duration-300 transform hover:-translate-y-1 h-[175px] group opacity-0 animate-scale-in"
+                style={{animationDelay: `${idx * 0.1}s`, animationFillMode: 'forwards'}}
               >
                 {/* SVG Visual container */}
                 <div className="flex-1 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
@@ -628,7 +732,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {steps.map((step, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center space-y-4 group relative z-10">
+              <div key={idx} className="flex flex-col items-center text-center space-y-4 group relative z-10 opacity-0 animate-fade-in-up"
+                style={{animationDelay: `${idx * 0.2}s`, animationFillMode: 'forwards'}}>
                 
                 {/* Connecting arrow drawing (Desktop only, between steps) */}
                 {idx < 3 && (
@@ -662,7 +767,8 @@ export default function Home() {
         <section className="py-8">
           <div className="bg-[#f0f7f3] border border-[#dcebe1] rounded-3xl p-6 sm:p-8 grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 shadow-sm">
             {features.map((feature, idx) => (
-              <div key={idx} className="flex flex-col items-center md:items-start text-center md:text-left space-y-2.5">
+              <div key={idx} className="flex flex-col items-center md:items-start text-center md:text-left space-y-2.5 opacity-0 animate-fade-in-up"
+                style={{animationDelay: `${idx * 0.15}s`, animationFillMode: 'forwards'}}>
                 <div className="w-10 h-10 rounded-xl bg-white border border-[#dcebe1] flex items-center justify-center shadow-sm">
                   {feature.icon}
                 </div>

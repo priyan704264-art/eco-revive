@@ -28,6 +28,7 @@ const initLocalStorageDB = () => {
         email: "priyanshu@example.com",
         city: "Delhi",
         lang_pref: "en",
+        verified: true,
         avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80",
         created_at: new Date().toISOString()
       },
@@ -37,6 +38,7 @@ const initLocalStorageDB = () => {
         email: "arjun@example.com",
         city: "Mumbai",
         lang_pref: "hi",
+        verified: true,
         avatar_url: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&h=150&q=80",
         created_at: new Date().toISOString()
       }
@@ -496,6 +498,7 @@ export async function getAllListings(filters = {}) {
     if (filters.minPrice) query = query.gte("price_inr", filters.minPrice);
     if (filters.maxPrice) query = query.lte("price_inr", filters.maxPrice);
     if (filters.grade) query = query.eq("components.grade", filters.grade);
+    if (filters.verifiedOnly) query = query.eq("users.verified", true);
 
     const { data, error } = await query;
     if (error) throw error;
@@ -526,6 +529,9 @@ export async function getAllListings(filters = {}) {
     }
     if (filters.grade) {
       results = results.filter(l => l.components && l.components.grade === filters.grade);
+    }
+    if (filters.verifiedOnly) {
+      results = results.filter(l => l.users && l.users.verified === true);
     }
 
     return results.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -616,6 +622,23 @@ export async function getUserImpact(userId) {
 }
 
 // ── MESSAGES (Realtime) ──
+export async function getMessages(listingId) {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("listing_id", listingId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } else {
+    const messages = getFromLS("db_messages");
+    return messages
+      .filter(m => m.listing_id === listingId)
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  }
+}
+
 export async function sendMessage(messageData) {
   if (supabase) {
     const { data, error } = await supabase
@@ -680,6 +703,39 @@ export async function recordPurchase(purchaseData) {
     // Mark listing as sold
     await supabase.from("listings").update({ status: 'sold' }).eq("id", purchaseData.listing_id);
 
+    // Update seller earnings in impact table
+    try {
+      const { data: listing } = await supabase
+        .from("listings")
+        .select("seller_id, price_inr")
+        .eq("id", purchaseData.listing_id)
+        .single();
+      if (listing) {
+        const netEarning = Math.round(listing.price_inr * 0.97);
+        const { data: existingImpact } = await supabase
+          .from("impact")
+          .select("*")
+          .eq("user_id", listing.seller_id)
+          .single();
+        if (existingImpact) {
+          await supabase.from("impact").update({
+            total_earnings_inr: (existingImpact.total_earnings_inr || 0) + netEarning,
+            updated_at: new Date().toISOString()
+          }).eq("user_id", listing.seller_id);
+        } else {
+          await supabase.from("impact").insert({
+            user_id: listing.seller_id,
+            components_recovered: 0,
+            co2_saved_kg: 0,
+            landfill_diverted_kg: 0,
+            total_earnings_inr: netEarning
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Could not update seller earnings:", e);
+    }
+
     return data;
   } else {
     const purchases = getFromLS("db_purchases");
@@ -696,8 +752,29 @@ export async function recordPurchase(purchaseData) {
     const listings = getFromLS("db_listings");
     const idx = listings.findIndex(l => l.id === purchaseData.listing_id);
     if (idx !== -1) {
+      const soldListing = listings[idx];
       listings[idx].status = 'sold';
       saveToLS("db_listings", listings);
+
+      // Update seller earnings in impact
+      const netEarning = Math.round((soldListing.price_inr || 0) * 0.97);
+      const impacts = getFromLS("db_impact");
+      const impIdx = impacts.findIndex(i => i.user_id === soldListing.seller_id);
+      if (impIdx !== -1) {
+        impacts[impIdx].total_earnings_inr = (impacts[impIdx].total_earnings_inr || 0) + netEarning;
+        impacts[impIdx].updated_at = new Date().toISOString();
+      } else {
+        impacts.push({
+          id: `imp-${Date.now()}`,
+          user_id: soldListing.seller_id,
+          components_recovered: 0,
+          co2_saved_kg: 0,
+          landfill_diverted_kg: 0,
+          total_earnings_inr: netEarning,
+          updated_at: new Date().toISOString()
+        });
+      }
+      saveToLS("db_impact", impacts);
     }
 
     return newPurchase;
@@ -738,5 +815,158 @@ export async function getUserPurchases(userId) {
         };
       })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+}
+
+// ── ADMIN ──
+export async function isAdmin() {
+  if (supabase) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase
+        .from("users")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      return data?.is_admin === true;
+    } catch { return false; }
+  } else {
+    return currentMockUser?.is_admin === true;
+  }
+}
+
+export async function getAdminStats() {
+  if (supabase) {
+    const { data } = await supabase.from("admin_stats").select("*").single();
+    return data;
+  } else {
+    const users     = getFromLS("db_users");
+    const listings  = getFromLS("db_listings");
+    const purchases = getFromLS("db_purchases");
+    const impacts   = getFromLS("db_impact");
+    const components = getFromLS("db_components");
+    return {
+      total_users:      users.length,
+      total_listings:   listings.length,
+      active_listings:  listings.filter(l => l.status === "active").length,
+      sold_listings:    listings.filter(l => l.status === "sold").length,
+      total_purchases:  purchases.length,
+      total_revenue_inr: purchases.reduce((s, p) => s + (p.amount_inr || 0), 0),
+      total_components: components.length,
+      total_co2_saved:  impacts.reduce((s, i) => s + (i.co2_saved_kg || 0), 0),
+    };
+  }
+}
+
+export async function adminGetAllUsers() {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*, impact(*)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } else {
+    const users   = getFromLS("db_users");
+    const impacts = getFromLS("db_impact");
+    return users.map(u => ({
+      ...u,
+      impact: impacts.find(i => i.user_id === u.id) || null
+    }));
+  }
+}
+
+export async function adminGetAllListings() {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("listings")
+      .select("*, components(*), users(name, email, city)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } else {
+    const listings   = getFromLS("db_listings");
+    const components = getFromLS("db_components");
+    const users      = getFromLS("db_users");
+    return listings.map(l => ({
+      ...l,
+      components: components.find(c => c.id === l.component_id) || null,
+      users:      users.find(u => u.id === l.seller_id) || null,
+    }));
+  }
+}
+
+export async function adminGetAllPurchases() {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("purchases")
+      .select("*, listings(price_inr, components(name)), users!buyer_id(name, email)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } else {
+    const purchases  = getFromLS("db_purchases");
+    const listings   = getFromLS("db_listings");
+    const components = getFromLS("db_components");
+    const users      = getFromLS("db_users");
+    return purchases.map(p => {
+      const listing = listings.find(l => l.id === p.listing_id);
+      const comp    = listing ? components.find(c => c.id === listing?.component_id) : null;
+      const buyer   = users.find(u => u.id === p.buyer_id);
+      return { ...p, listings: listing ? { ...listing, components: comp } : null, users: buyer || null };
+    });
+  }
+}
+
+export async function adminDeleteListing(id) {
+  if (supabase) {
+    const { error } = await supabase.from("listings").delete().eq("id", id);
+    if (error) throw error;
+  } else {
+    const listings = getFromLS("db_listings").filter(l => l.id !== id);
+    saveToLS("db_listings", listings);
+  }
+}
+
+export async function adminToggleUserBan(userId, banned) {
+  if (supabase) {
+    const { error } = await supabase
+      .from("users")
+      .update({ is_banned: banned })
+      .eq("id", userId);
+    if (error) throw error;
+  } else {
+    const users = getFromLS("db_users").map(u =>
+      u.id === userId ? { ...u, is_banned: banned } : u
+    );
+    saveToLS("db_users", users);
+  }
+}
+
+export async function adminToggleVerified(userId, verified) {
+  if (supabase) {
+    const { error } = await supabase
+      .from("users")
+      .update({ verified })
+      .eq("id", userId);
+    if (error) throw error;
+  } else {
+    const users = getFromLS("db_users").map(u =>
+      u.id === userId ? { ...u, verified } : u
+    );
+    saveToLS("db_users", users);
+  }
+}
+
+export async function adminUpdateListingStatus(id, status) {
+  if (supabase) {
+    const { error } = await supabase.from("listings").update({ status }).eq("id", id);
+    if (error) throw error;
+  } else {
+    const listings = getFromLS("db_listings").map(l =>
+      l.id === id ? { ...l, status } : l
+    );
+    saveToLS("db_listings", listings);
   }
 }

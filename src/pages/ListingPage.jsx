@@ -91,7 +91,7 @@ export default function ListingPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white border border-[#e2ece6] rounded-3xl p-6 space-y-5 shadow-sm">
+        <form onSubmit={handleSubmit} className="bg-white border border-[#e2ece6] rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-5 shadow-sm">
           {error && (
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-sm text-rose-600 text-center">
               ⚠️ {error}

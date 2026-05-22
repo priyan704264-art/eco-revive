@@ -17,12 +17,12 @@ export default function ScanPage() {
         {/* Dynamic redirection shortcuts once components are saved */}
         {scannedComponents.length > 0 && (
           <div className="max-w-4xl mx-auto px-4 mt-8 animate-fadeIn">
-            <div className="bg-white border border-[#e2ece6] rounded-[2rem] p-8 shadow-xl shadow-[#0F9D8A]/5 space-y-4">
+            <div className="bg-white border border-[#e2ece6] rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 shadow-xl shadow-[#0F9D8A]/5 space-y-4">
               <div className="flex items-center gap-2 text-[#0F9D8A] font-bold text-sm uppercase tracking-wider">
                 <Sparkles size={16} />
                 <span>Next Recovery Workstations</span>
               </div>
-              <h3 className="text-xl font-black text-slate-800 leading-snug">
+              <h3 className="text-base sm:text-xl font-black text-slate-800 leading-snug">
                 Components saved successfully! View the safety guides or list them on the marketplace for instant cash.
               </h3>
               

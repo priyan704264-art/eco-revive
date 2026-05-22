@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { 
   sendMessage, 
   subscribeToMessages, 
-  getUser 
+  getUser,
+  getMessages
 } from "../lib/supabase";
 import { Send, User, Check, ShieldAlert, Loader2 } from "lucide-react";
 
@@ -25,12 +26,18 @@ export default function ChatBox({ listing, onClose }) {
       const user = await getUser();
       setCurrentUser(user);
 
-      // Load initial messages from database
-      const cachedMessages = localStorage.getItem("db_messages");
-      if (cachedMessages) {
-        const allMsgs = JSON.parse(cachedMessages);
-        const filtered = allMsgs.filter(m => m.listing_id === listing.id);
-        setMessages(filtered);
+      // Load initial messages from Supabase or localStorage fallback
+      try {
+        const msgs = await getMessages(listing.id);
+        setMessages(msgs || []);
+      } catch {
+        // Fallback to localStorage cache
+        const cachedMessages = localStorage.getItem("db_messages");
+        if (cachedMessages) {
+          const allMsgs = JSON.parse(cachedMessages);
+          const filtered = allMsgs.filter(m => m.listing_id === listing.id);
+          setMessages(filtered);
+        }
       }
       setLoading(false);
       setTimeout(scrollToBottom, 100);

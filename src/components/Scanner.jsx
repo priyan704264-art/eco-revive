@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import Webcam from "react-webcam";
+import { useNavigate } from "react-router-dom";
 import { detectComponents } from "../lib/groq";
 import { saveDevice, saveComponent, uploadComponentImage, updateImpact, getUser } from "../lib/supabase";
 import { Camera, Upload, AlertTriangle, CheckCircle, Sparkles, RefreshCw, Box, Zap, Download, ShoppingBag, ShieldCheck, Activity, Target } from "lucide-react";
@@ -7,6 +8,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import DisassemblyGuide from "./DisassemblyGuide";
 
 export default function Scanner({ onComponentsSaved }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState("idle"); // idle, camera, result
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -15,6 +17,7 @@ export default function Scanner({ onComponentsSaved }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedComponents, setSavedComponents] = useState([]);
   const [activeGuide, setActiveGuide] = useState(null);
 
   const webcamRef = useRef(null);
@@ -82,15 +85,18 @@ export default function Scanner({ onComponentsSaved }) {
       
       const device = await saveDevice({ user_id: user.id, type: "laptop/pc", photo_url: uploadedUrl, scan_result: components });
       
+      const savedComps = [];
       for (const comp of components) {
-        await saveComponent({
+        const saved = await saveComponent({
           device_id: device.id, user_id: user.id, name: comp.name, hindi_name: comp.hindi_name, grade: comp.grade,
           reuse_potential: comp.reuse_potential, safety_risk: comp.safety_risk || "Safe", estimated_value_inr: comp.estimated_value_inr,
           image_url: uploadedUrl || "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&w=300&h=200&q=80",
           status: "in_inventory"
         });
+        savedComps.push(saved);
         await updateImpact(user.id, comp).catch(() => {});
       }
+      setSavedComponents(savedComps);
       setSaved(true);
       if (onComponentsSaved) onComponentsSaved(components);
     } catch (err) {
@@ -115,22 +121,22 @@ export default function Scanner({ onComponentsSaved }) {
     <div className="font-sans px-4 sm:px-6 lg:px-8 flex flex-col items-center">
       
       {/* Header */}
-      <header className="w-full max-w-[1400px] flex justify-between items-center mb-6">
+      <header className="w-full max-w-[1400px] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
             <Target className="text-[#0F9D8A]" /> AI Vision Scanner <span className="text-[#0F9D8A] animate-pulse text-sm ml-2">● Live</span>
           </h1>
-          <p className="text-[11px] text-slate-400 font-bold tracking-widest uppercase mt-1">EcoParts Autonomous Detection System v2.4</p>
+          <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">ReCupare Detection System v2.4</p>
         </div>
         
-        <div className="flex gap-4">
-          <div className="bg-white border border-slate-100 rounded-2xl px-5 py-2.5 flex flex-col items-end shadow-sm">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">System Status</span>
-            <span className="text-sm font-black text-emerald-500 flex items-center gap-1.5"><CheckCircle size={14} className="stroke-[3]"/> Online</span>
+        <div className="flex gap-2 sm:gap-4">
+          <div className="bg-white border border-slate-100 rounded-xl sm:rounded-2xl px-3 sm:px-5 py-2 sm:py-2.5 flex flex-col items-end shadow-sm">
+            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-bold">Status</span>
+            <span className="text-xs sm:text-sm font-black text-emerald-500 flex items-center gap-1"><CheckCircle size={12} className="stroke-[3]"/> Online</span>
           </div>
-          <div className="bg-white border border-slate-100 rounded-2xl px-5 py-2.5 flex flex-col items-end shadow-sm">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Confidence</span>
-            <span className="text-sm font-black text-[#0F9D8A]">{avgConfidence}%</span>
+          <div className="bg-white border border-slate-100 rounded-xl sm:rounded-2xl px-3 sm:px-5 py-2 sm:py-2.5 flex flex-col items-end shadow-sm">
+            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-bold">Confidence</span>
+            <span className="text-xs sm:text-sm font-black text-[#0F9D8A]">{avgConfidence}%</span>
           </div>
         </div>
       </header>
@@ -147,14 +153,14 @@ export default function Scanner({ onComponentsSaved }) {
                  <Camera className="w-12 h-12 text-[#0F9D8A]" />
                </div>
                <div className="relative z-10">
-                  <h2 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">Initialize Scanning Sequence</h2>
+                  <h2 className="text-xl sm:text-3xl font-black text-slate-800 mb-2 tracking-tight">Initialize Scanning Sequence</h2>
                   <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Position your motherboard, RAM, or electronic component within the frame for AI-powered autonomous breakdown analysis.</p>
                </div>
-               <div className="flex gap-4 relative z-10">
-                 <button onClick={() => setMode("camera")} className="px-8 py-3.5 bg-[#0F9D8A] hover:bg-[#0c7c6c] text-white font-bold rounded-2xl transition shadow-lg shadow-[#0F9D8A]/20 flex items-center gap-2 transform hover:-translate-y-0.5">
+               <div className="flex flex-col sm:flex-row gap-3 relative z-10 w-full sm:w-auto px-4 sm:px-0">
+                 <button onClick={() => setMode("camera")} className="px-6 py-3.5 bg-[#0F9D8A] hover:bg-[#0c7c6c] text-white font-bold rounded-2xl transition shadow-lg shadow-[#0F9D8A]/20 flex items-center justify-center gap-2">
                    <Camera size={18} /> Activate Camera
                  </button>
-                 <button onClick={() => fileRef.current.click()} className="px-8 py-3.5 bg-white border border-slate-200 hover:border-[#0F9D8A]/40 hover:bg-slate-50 text-slate-600 font-bold rounded-2xl transition flex items-center gap-2">
+                 <button onClick={() => fileRef.current.click()} className="px-6 py-3.5 bg-white border border-slate-200 hover:border-[#0F9D8A]/40 hover:bg-slate-50 text-slate-600 font-bold rounded-2xl transition flex items-center justify-center gap-2">
                    <Upload size={18} /> Upload Image
                  </button>
                  <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
@@ -171,11 +177,11 @@ export default function Scanner({ onComponentsSaved }) {
                 <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[5px] border-l-[5px] border-[#0F9D8A] rounded-bl-3xl"></div>
                 <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[5px] border-r-[5px] border-[#0F9D8A] rounded-br-3xl"></div>
               </div>
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4">
-                <button onClick={capturePhoto} className="px-8 py-3.5 bg-[#0F9D8A] text-white font-bold rounded-full shadow-lg shadow-[#0F9D8A]/30 hover:scale-105 transition-transform flex items-center gap-2 tracking-wide">
-                   <Target size={18} /> Analyze Target
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 w-full px-6 justify-center">
+                <button onClick={capturePhoto} className="px-5 sm:px-8 py-3 sm:py-3.5 bg-[#0F9D8A] text-white font-bold rounded-full shadow-lg shadow-[#0F9D8A]/30 hover:scale-105 transition-transform flex items-center gap-2 tracking-wide text-sm">
+                   <Target size={16} /> Analyze
                 </button>
-                <button onClick={reset} className="px-8 py-3.5 bg-white text-slate-700 font-bold rounded-full hover:bg-slate-50 transition shadow-md">Cancel</button>
+                <button onClick={reset} className="px-5 sm:px-8 py-3 sm:py-3.5 bg-white text-slate-700 font-bold rounded-full hover:bg-slate-50 transition shadow-md text-sm">Cancel</button>
               </div>
             </div>
           )}
@@ -225,7 +231,7 @@ export default function Scanner({ onComponentsSaved }) {
         </div>
 
         {/* Right Sidebar: Results & Actions */}
-        <div className={`w-full lg:w-[450px] flex flex-col gap-6 transition-all duration-500 ${mode === "result" && !loading ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none absolute right-0"}`}>
+        <div className={`w-full lg:w-[450px] flex-col gap-6 transition-all duration-500 ${mode === "result" && !loading ? "flex opacity-100" : "hidden opacity-0 pointer-events-none"}`}>
           
           <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col">
             <h3 className="text-slate-800 font-black text-xl mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
@@ -286,7 +292,16 @@ export default function Scanner({ onComponentsSaved }) {
               )}
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                 <button onClick={() => {}} className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-[#0F9D8A]/40 text-slate-700 text-xs font-bold py-3.5 rounded-xl flex justify-center items-center gap-1.5 transition shadow-sm">
+                 <button 
+                   onClick={() => {
+                     if (savedComponents.length > 0) {
+                       navigate("/list", { state: { component: savedComponents[0] } });
+                     } else if (components.length > 0) {
+                       // Not yet saved — prompt user to save first
+                       setError("Please save the scan first before listing.");
+                     }
+                   }}
+                   className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-[#0F9D8A]/40 text-slate-700 text-xs font-bold py-3.5 rounded-xl flex justify-center items-center gap-1.5 transition shadow-sm">
                    <ShoppingBag size={14}/> Sell Items
                  </button>
                  <button onClick={() => components[0] && setActiveGuide(components[0])} className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-[#0F9D8A]/40 text-slate-700 text-xs font-bold py-3.5 rounded-xl flex justify-center items-center gap-1.5 transition shadow-sm">
