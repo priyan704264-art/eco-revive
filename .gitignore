@@ -28,3 +28,8 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Android keystore — NEVER commit these
+*.keystore
+*.jks
+android/keystore.properties
+
