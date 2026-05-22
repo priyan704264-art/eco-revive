@@ -51,7 +51,7 @@ export default function Navbar() {
           <img
             src="/logo.png"
             alt="ReCupare"
-            className="h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           {/* Fallback text logo shown if image fails to load */}

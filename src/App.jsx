@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import ScanPage from "./pages/ScanPage";
 import MarketplacePage from "./pages/MarketplacePage";
@@ -9,6 +10,11 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DisassemblyPage from "./pages/DisassemblyPage";
 import AdminPage from "./pages/AdminPage";
+import AboutPage from "./pages/AboutPage";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import RefundPage from "./pages/RefundPage";
 
 function AppContent() {
   return (
@@ -26,13 +32,15 @@ function AppContent() {
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route path="/disassembly" element={<DisassemblyPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/refund" element={<RefundPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      
-      <footer className="py-6 text-center border-t border-[#e2ece6] text-[10px] text-slate-400 uppercase tracking-widest bg-white mt-auto">
-        © {new Date().getFullYear()} ReCupare. Recycle. Reuse. Rebuild. Wiping Heavy Metals Out of Earth.
-      </footer>
+      <Footer />
     </div>
   );
 }
