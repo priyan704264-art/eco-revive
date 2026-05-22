@@ -5,7 +5,7 @@ import io
 from PIL import Image
 import os
 
-app = FastAPI(title="EcoRevive Object Detection Local Server")
+app = FastAPI(title="ReCupare AI Detection Server")
 
 # Enable CORS so your React web app can call it
 app.add_middleware(
