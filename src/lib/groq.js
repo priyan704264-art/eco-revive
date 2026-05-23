@@ -1,5 +1,5 @@
 const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
 
 // Calls the local YOLO backend (best.pt) for component detection
 async function detectFromYOLO(imageFile) {

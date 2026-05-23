@@ -824,12 +824,13 @@ export async function isAdmin() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
-      const { data } = await supabase
-        .from("users")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-      return data?.is_admin === true;
+      // Use raw SQL via RPC to avoid RLS recursion on users table
+      const { data, error } = await supabase.rpc('get_is_admin', { uid: user.id });
+      if (error) {
+        // Fallback: check user_metadata
+        return user.user_metadata?.is_admin === true;
+      }
+      return data === true;
     } catch { return false; }
   } else {
     return currentMockUser?.is_admin === true;

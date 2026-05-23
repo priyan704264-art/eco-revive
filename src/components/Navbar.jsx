@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, ShoppingCart } from "lucide-react";
-import { getUser } from "../lib/supabase";
+import { Menu, X, Search, ShoppingCart, ShieldCheck } from "lucide-react";
+import { getUser, isAdmin } from "../lib/supabase";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [adminUser, setAdminUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,6 +15,12 @@ export default function Navbar() {
     async function loadUser() {
       const u = await getUser();
       setUser(u);
+      if (u) {
+        const admin = await isAdmin();
+        setAdminUser(admin);
+      } else {
+        setAdminUser(false);
+      }
     }
     loadUser();
     window.addEventListener("storage", loadUser);
@@ -107,16 +114,26 @@ export default function Navbar() {
         {/* Auth buttons */}
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
-            <Link to="/profile" className="flex items-center gap-2.5 group">
-              <img
-                src={user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || user.email || "user")}`}
-                alt={user.name || "User"}
-                className="w-8 h-8 rounded-full border border-slate-200 group-hover:border-[#0F9D8A] transition-colors object-cover"
-              />
-              <span className="text-xs font-semibold text-slate-700 group-hover:text-[#0F9D8A] transition-colors">
-                {(user.name || user.email || "User").split(" ")[0]}
-              </span>
-            </Link>
+            <div className="flex items-center gap-3">
+              {adminUser && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-slate-900 hover:bg-slate-700 text-white transition-all"
+                >
+                  <ShieldCheck size={13} /> Admin
+                </Link>
+              )}
+              <Link to="/profile" className="flex items-center gap-2.5 group">
+                <img
+                  src={user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || user.email || "user")}`}
+                  alt={user.name || "User"}
+                  className="w-8 h-8 rounded-full border border-slate-200 group-hover:border-[#0F9D8A] transition-colors object-cover"
+                />
+                <span className="text-xs font-semibold text-slate-700 group-hover:text-[#0F9D8A] transition-colors">
+                  {(user.name || user.email || "User").split(" ")[0]}
+                </span>
+              </Link>
+            </div>
           ) : (
             <>
               <Link to="/login" className="px-4 py-1.5 text-xs font-bold rounded-full border border-[#0F9D8A] text-[#0F9D8A] hover:bg-[#0F9D8A]/5 transition-all">
@@ -178,21 +195,32 @@ export default function Navbar() {
           <hr className="border-slate-100" />
 
           {user ? (
-            <Link
-              to="/profile"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 py-2.5 px-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
-            >
-              <img
-                src={user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || user.email || "user")}`}
-                alt={user.name || "User"}
-                className="w-9 h-9 rounded-full object-cover"
-              />
-              <div>
-                <p className="text-sm font-bold text-slate-800">{user.name || user.email || "Hub Member"}</p>
-                <p className="text-xs text-slate-500">{user.city || "Delhi"}</p>
-              </div>
-            </Link>
+            <div className="flex flex-col gap-2">
+              {adminUser && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm text-center text-white bg-slate-900 hover:bg-slate-700 transition"
+                >
+                  <ShieldCheck size={14} /> Admin Panel
+                </Link>
+              )}
+              <Link
+                to="/profile"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 py-2.5 px-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
+              >
+                <img
+                  src={user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || user.email || "user")}`}
+                  alt={user.name || "User"}
+                  className="w-9 h-9 rounded-full object-cover"
+                />
+                <div>
+                  <p className="text-sm font-bold text-slate-800">{user.name || user.email || "Hub Member"}</p>
+                  <p className="text-xs text-slate-500">{user.city || "Delhi"}</p>
+                </div>
+              </Link>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <Link
