@@ -1,0 +1,13 @@
+# Railway monorepo configuration
+# This file tells Railway how to build and run both services from one repo.
+# On Railway dashboard: create TWO services pointing to this same repo.
+#   Service 1 (backend)  → set Root Directory = backend
+#   Service 2 (frontend) → set Root Directory = /  (repo root)
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

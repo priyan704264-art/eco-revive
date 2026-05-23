@@ -71,13 +71,8 @@ import hashlib
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Load env variables from root folder
-current_dir = os.path.dirname(os.path.abspath(__file__))
-env_path = os.path.join(current_dir, "..", ".env")
-if os.path.exists(env_path):
-    load_dotenv(dotenv_path=env_path)
-else:
-    load_dotenv()
+# Load env variables — works both locally and on Railway
+load_dotenv()
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_SrVRaaDyufAVIb")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "pdgaohsFv77vlwJbFPnGZt3D")

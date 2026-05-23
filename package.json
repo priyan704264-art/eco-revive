@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "serve -s dist -l ${PORT:-3000}"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -18,7 +19,8 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^14.0.0",
     "react-router-dom": "^6.21.0",
-    "react-webcam": "^7.2.0"
+    "react-webcam": "^7.2.0",
+    "serve": "^14.2.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",

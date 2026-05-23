@@ -1,0 +1,14 @@
+# Nixpacks config for the FRONTEND service on Railway
+# Railway will use this when the root directory is set to /
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npx serve -s dist -l $PORT"
